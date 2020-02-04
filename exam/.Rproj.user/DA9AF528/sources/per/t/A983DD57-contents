@@ -1,0 +1,59 @@
+load("golub_data.RData")
+
+model <- glm(cl ~ ., family = binomial, data = golub_data)
+
+model1 <- glm(golub_data$cl ~ golub_data[,1], family = binomial)
+dim(golub_data)
+colnames(golub_data) <- c(paste0("G",1:3049),"cl")
+summary(model1)
+
+model1 <- glm(cl ~ G1, family = binomial, 
+              data = golub_data)
+summary(model1)
+
+n <- ncol(golub_data) - 1
+res <- lapply(1:(n), function(i){
+  model <- glm(golub_data$cl ~ golub_data[,i], family = binomial)
+  return(model)
+})
+
+### compute the AICS scores
+aics <- (sapply(res, function(x) x$aic))
+plot(aics)
+
+### sort the AICs score 
+sortedaics <- sort(aics, decreasing = FALSE, index.return = TRUE)
+ix <- sortedaics$ix
+best <- sortedaics$ix[1]
+second <- sortedaics$ix[2] 
+
+### try the best and second gene
+model2 <- glm(cl ~ G394 + G829, family = binomial, 
+              data = golub_data)
+summary(model2)
+
+### it is not working well because G394 and G829 are
+### linearly correlated
+plot(golub_data$G394, golub_data$G829)
+
+
+########### instead let's use G670 and G829
+
+plot(golub_data$G670, golub_data$G829)
+
+#### 
+model2 <- glm(cl ~ G670 + G829, 
+              family = binomial, data = golub_data )
+summary(model2)
+plot(golub_data$G670, golub_data$G829, 
+     col = golub_data$cl + 1, xlim = c(-0.8,3))
+legend("topright", legend = c("ALL", "AML"), col = c(1,2), pch = 1)
+summary(model2)
+xx <- seq(-0.8,3, length.out = 100)
+yy <- seq(-1.5, 3, length.out = 100)
+grid <- expand.grid(G670 = xx, G829 = yy)
+zz <- predict(model2, newdata = grid)
+contour(x = xx, y = yy, z = matrix(nrow = 100, zz), levels = c(0))
+points(golub_data$G670, golub_data$G829, 
+     col = golub_data$cl + 1, xlim = c(-0.8,3))
+legend("topright", legend = c("ALL", "AML"), col = c(1,2), pch = 1)

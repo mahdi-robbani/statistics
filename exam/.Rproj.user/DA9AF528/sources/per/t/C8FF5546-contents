@@ -1,0 +1,20 @@
+crab <- read.table("crab.txt", header =  TRUE)
+head(crab)
+dim(crab)
+
+model <- glm(Sa ~ Wt, family = poisson, data = crab)
+summary(model)
+
+
+model <- glm(Sa ~ C, family = poisson, data = crab)
+
+crab1 <- crab
+crab1$C <- as.factor(crab1$C)
+levels(crab1$C)
+levels(crab1$C) <- c("red", "blue", "yellow", "black")
+model1 <- glm(Sa ~ C, family = poisson, data = crab1)
+summary(model1)
+crab1$S <- as.factor(crab1$S)
+
+model0 <- glm(Sa ~ C +  S, family = poisson, data = crab1)
+model <- glm(Sa ~ C * S, family = poisson, data = crab1)
